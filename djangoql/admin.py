@@ -52,6 +52,13 @@ class DjangoQLSearchMixin(object):
                 'djangoql/css/completion.css',
                 'djangoql/css/completion_admin.css',
             )})
+        if self.djangoql_query_manager:
+            media.add_js((
+                'djangoql/js/query_manager.js',
+            ))
+            media.add_css({'': (
+                'djangoql/css/query_manager.css',
+            )})
         return media
 
     def get_urls(self):

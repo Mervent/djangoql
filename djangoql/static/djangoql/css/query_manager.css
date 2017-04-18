@@ -1,0 +1,80 @@
+#djangoql-qm-container {
+  position: relative;
+  display: inline-block;
+}
+
+.djangoql-qm-buttons {
+  font-size: 26px;
+  margin: 0 5px;
+  display: inline-block;
+  vertical-align: top;
+  line-height: 0.9;
+}
+
+.djangoql-qm-star:hover {
+  cursor: pointer;
+  color: #ffb400;
+}
+
+.djangoql-qm-star.starred {
+  color: #ffb400;
+}
+
+.djangoql-qm-toggle:hover {
+  cursor: pointer;
+  color: #79aec8;
+}
+
+#djangoql-qm-search {
+  width: 80%;
+}
+
+#djangoql-qm-content {
+  display: none;
+  position: absolute;
+  top: 10px;
+  left: -100px;
+  background-color: #f9f9f9;
+  min-width: 200px;
+  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+  padding: 5px 5px;
+  z-index: 1001; /* Django right toolbar is using z-index: 1000 */
+}
+
+#djangoql-qm-results-wrapper {
+  padding: 2px 0;
+  max-height: 295px;
+  word-wrap: break-word;
+  overflow: auto;
+  overflow-x: hidden;
+}
+
+#djangoql-qm-results {
+  margin-right: 16px; /* Fix for firefox overflow problem */
+}
+
+.djangoql-qm-insert {
+  font-size: 10px;
+}
+
+.djangoql-qm-insert:hover {
+  background-color: #79aec8;
+  color: white;
+  cursor: pointer;
+}
+
+.djangoql-qm-delete span {
+  color: #a00000;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
