@@ -26,13 +26,12 @@
             '<span title="Delete query">✘</span>' +
           '</td>' +
         '</tr>',
-      userQueryList: [],
 
       init: function(inputSelector) {
         $(inputSelector).after(this.toolboxTemplate);
         this.bindComponents(inputSelector);
         this.registerEventHandlers();
-        this.getQueryList();
+        this.refreshQueryList();
       },
 
       bindComponents : function(inputSelector) {
@@ -69,16 +68,16 @@
         self.searchBox.on('input propertychanged', function () {
           window.clearTimeout(searchTimeout);
           searchTimeout = window.setTimeout(function() {
-            var searchString = self.searchBox.val();
-            self.getQueryList(searchString);
+            var results = self.filterQuery(self.searchBox.val());
+            self.renderResults(results);
           }, 500);
         });
 
         self.searchBox.on('keydown', function(e) {
           if(e.keyCode === 13) {
             e.preventDefault(); // prevent form submit on Enter
-            var searchString = self.searchBox.val();
-            self.getQueryList(searchString);
+            var results = self.filterQuery(self.searchBox.val());
+            self.renderResults(results);
           }
         });
 
@@ -91,14 +90,8 @@
         });
 
         $(document).on('click', '.djangoql-qm-delete', function () {
-          var elem = this;
-          var query_id = $(elem).parent('tr').data('id');
-          self.removeQuery(query_id, function () {
-            $(elem).parent('tr').fadeOut(300, function() {
-              $(this).remove();
-              self.getQueryList();
-            });
-          });
+          var query_id = $(this).parent('tr').data('id');
+          self.removeQuery(query_id);
         });
       },
 
@@ -110,20 +103,23 @@
         this.userQueryList = results;
       },
 
-      isStarred : function(query) {
-        var isStarred = false;
-        $.each(this.userQueryList, function(key, val) {
-            if (val.text === query) {
-              isStarred = true;
-            }
-          }
-        );
-        return isStarred;
+      filterQuery : function(contains) {
+        return this.userQueryList.filter(function(obj) {
+          return (obj.text.indexOf(contains) !== -1);
+        });
+      },
+
+      getQuery : function(queryText) {
+        return this.userQueryList.filter(function(obj) {
+          return obj.text === queryText;
+        })[0];
       },
 
       updateStarIconStatus: function() {
-        var currentQuery = $(this.inputSelector).val();
-        if (this.isStarred(currentQuery)) {
+        var currentQueryText = $(this.inputSelector).val();
+        var userQuery = this.getQuery(currentQueryText);
+
+        if (userQuery) {
           this.starButton.addClass('starred');
         } else {
           this.starButton.removeClass('starred');
@@ -150,31 +146,32 @@
           query: query,
           csrfmiddlewaretoken: this.getCsrfMiddlewareToken()
         }).done(function() {
-          self.getQueryList();
+          self.refreshQueryList();
         });
       },
 
-      getQueryList: function(filter) {
+      refreshQueryList: function() {
         var self = this;
-        $.getJSON('get-queries/', {q: filter})
+        $.getJSON('get-queries/')
           .done(function(json) {
-            if (!filter) {
-                /* if no filter provided cache user queries
-                   to use in isStarred and updateStarIconStatus later */
-                self.cacheResults(json.results);
-              }
+              self.cacheResults(json.results);
               self.renderResults(json.results);
               self.updateStarIconStatus();
             }
           );
       },
 
-      removeQuery: function(query_id, success) {
+      removeQuery: function(query_id) {
+        var self = this;
         $.post("remove-query/", {
           id: query_id,
           csrfmiddlewaretoken: this.getCsrfMiddlewareToken()
         }).done(function() {
-          success();
+            $('tr[data-id=' + query_id + ']', self.resultsContainer).fadeOut(
+              200, function() {
+                self.refreshQueryList();
+              }
+            );
         });
       }
     };

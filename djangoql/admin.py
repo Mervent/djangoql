@@ -128,13 +128,10 @@ class DjangoQLSearchMixin(object):
         )
 
     def get_queries(self, request):
-        q = request.GET.get('q')
         queryset = Query.objects.filter(
             Q(model=self.get_current_content_type()) &
             (Q(user=request.user) | Q(public=True))
         ).values('id', 'text')
-        if q:
-            queryset = queryset.filter(text__icontains=q)
 
         response = {'results': list(queryset)}
         return self.json_response(response)

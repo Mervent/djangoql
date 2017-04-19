@@ -67,18 +67,6 @@ class DjangoQLAdminTest(TestCase):
         response_json = json.loads(response.content.decode('utf-8'))
         self.assertEqual(len(response_json['results']), 2)
 
-    def test_get_queries_with_q_param(self):
-        url = reverse('admin:core_book_djangoql_get_queries')
-        self.client.login(**self.credentials)
-        self.post_query("sample1@example.com")
-        self.post_query("sample2@example.com")
-
-        response = self.client.get(url, data={'q': 'sample2'})
-        self.assertJSONEqual(
-            response.content.decode('utf-8'),
-            {'results': [{'id': 2, 'text': 'sample2@example.com'}]}
-        )
-
     def test_delete_query_by_id(self):
         url = reverse('admin:core_book_djangoql_remove_query')
         self.client.login(**self.credentials)
