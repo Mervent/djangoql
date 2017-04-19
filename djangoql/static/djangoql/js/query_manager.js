@@ -50,8 +50,12 @@
         var searchTimeout;
 
         self.starButton.on('click', function() {
-          var query = $(self.inputSelector).val();
-          self.saveQuery(query);
+          if (self.currentQueryId) {
+            self.removeQuery(self.currentQueryId);
+          } else {
+            var query = $(self.inputSelector).val();
+            self.saveQuery(query);
+          }
         });
 
         $(document).on('input propertychanged', self.inputSelector, function () {
@@ -121,8 +125,10 @@
 
         if (userQuery) {
           this.starButton.addClass('starred');
+          this.currentQueryId = userQuery.id;
         } else {
           this.starButton.removeClass('starred');
+          this.currentQueryId = null;
         }
       },
 
