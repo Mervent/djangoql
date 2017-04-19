@@ -72,7 +72,7 @@
         self.searchBox.on('input propertychanged', function () {
           window.clearTimeout(searchTimeout);
           searchTimeout = window.setTimeout(function() {
-            var results = self.filterQuery(self.searchBox.val());
+            var results = self.filterQueryList(self.searchBox.val());
             self.renderResults(results);
           }, 500);
         });
@@ -80,7 +80,7 @@
         self.searchBox.on('keydown', function(e) {
           if(e.keyCode === 13) {
             e.preventDefault(); // prevent form submit on Enter
-            var results = self.filterQuery(self.searchBox.val());
+            var results = self.filterQueryList(self.searchBox.val());
             self.renderResults(results);
           }
         });
@@ -107,7 +107,7 @@
         this.userQueryList = results;
       },
 
-      filterQuery : function(contains) {
+      filterQueryList : function(contains) {
         return this.userQueryList.filter(function(obj) {
           return (obj.text.indexOf(contains) !== -1);
         });
