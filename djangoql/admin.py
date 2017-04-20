@@ -92,6 +92,14 @@ class DjangoQLSearchMixin(object):
                     ),
                 ),
                 url(
+                    r'update-query/$',
+                    self.admin_site.admin_view(self.update_query),
+                    name='%s_%s_djangoql_update_query' % (
+                        self.model._meta.app_label,
+                        self.model._meta.model_name,
+                    ),
+                ),
+                url(
                     r'remove-query/$',
                     self.admin_site.admin_view(self.remove_query),
                     name='%s_%s_djangoql_remove_query' % (
@@ -138,15 +146,25 @@ class DjangoQLSearchMixin(object):
 
     def save_query(self, request):
         query = request.POST.get('query')
-        public = request.POST.get('public', False)
         if query:
             content_type = self.get_current_content_type()
-            Query.objects.update_or_create(
+            Query.objects.get_or_create(
                 text=query,
                 user=request.user,
                 model=content_type,
-                defaults={'public': public}
             )
+            return self.json_response({'success': True}, status=200)
+
+        return self.json_response({'success': False}, status=400)
+
+    def update_query(self, request):
+        query_id = request.POST.get('id')
+        public = request.POST.get('public')
+        if query_id and public:
+            Query.objects.filter(
+                id=query_id,
+                user=request.user
+            ).update(public=public)
             return self.json_response({'success': True}, status=200)
 
         return self.json_response({'success': False}, status=400)

@@ -36,18 +36,21 @@ class DjangoQLAdminTest(TestCase):
         self.assertEquals(200, response.status_code)
         self.assertEqual(Query.objects.count(), 1)
 
-    def test_save_public_query(self):
+    def test_toggle_public_query(self):
         self.client.login(**self.credentials)
-        url = reverse('admin:core_book_djangoql_save_query')
-        response = self.client.post(
-            url,
-            data={'query': 'email = "sample@example.com"', 'public': True}
-        )
+        url = reverse('admin:core_book_djangoql_update_query')
+        self.post_query("sample@example.com")
 
-        self.assertEquals(200, response.status_code)
         query = Query.objects.first()
-        self.assertIsNotNone(query)
+        self.assertFalse(query.public)
+
+        self.client.post(url, data={'id': query.id, 'public': True})
+        query.refresh_from_db()
         self.assertTrue(query.public)
+
+        self.client.post(url, data={'id': query.id, 'public': False})
+        query.refresh_from_db()
+        self.assertFalse(query.public)
 
     def test_cannot_save_duplicate_queries(self):
         self.client.login(**self.credentials)
@@ -66,6 +69,38 @@ class DjangoQLAdminTest(TestCase):
         self.assertEquals(200, response.status_code)
         response_json = json.loads(response.content.decode('utf-8'))
         self.assertEqual(len(response_json['results']), 2)
+
+    def test_get_queries_should_include_public_ones(self):
+        get_url = reverse('admin:core_book_djangoql_get_queries')
+        update_url = reverse('admin:core_book_djangoql_update_query')
+        new_credentials = {'username': 'user', 'password': 'strong'}
+        public_query = 'some.public.query = True'
+        User.objects.create_superuser(
+            email='user@example.com',
+            **new_credentials
+        )
+
+        # Login and save two queries
+        self.client.login(**self.credentials)
+        self.post_query(public_query)
+        self.post_query('my.private.query = True')
+
+        # Update first query to make it public
+        query = Query.objects.first()
+        self.client.post(update_url, data={'id': query.id, 'public': True})
+        response = self.client.get(get_url)
+        response_json = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(response_json['results']), 2)
+
+        # Login as new user and check query list, we should see public query
+        self.client.login(**new_credentials)
+        response = self.client.get(get_url)
+        response_json = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(response_json['results']), 1)
+        self.assertIn(
+            public_query,
+            [x['text'] for x in response_json['results']]
+        )
 
     def test_delete_query_by_id(self):
         url = reverse('admin:core_book_djangoql_remove_query')
