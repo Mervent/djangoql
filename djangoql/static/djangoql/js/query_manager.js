@@ -35,7 +35,11 @@
             '</div>' +
         '</div>',
 
-      init: function(inputSelector) {
+      init: function(settings) {
+        var inputSelector = settings.inputSelector || '#searchbar';
+        this.getCsrfMiddlewareToken =
+          settings.getCsrfMiddlewareToken || this.getCsrfMiddlewareToken;
+
         $(inputSelector).after(this.toolboxTemplate);
         this.bindComponents(inputSelector);
         this.registerEventHandlers();
@@ -225,6 +229,6 @@
       }
     };
 
-    qManager.init('#searchbar');
+    qManager.init({inputSelector: '#searchbar'});
   });
 })(django.jQuery);
