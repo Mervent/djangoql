@@ -35,6 +35,8 @@ var DjangoQM = (function() {
             'Shared by other user' +
           '</div>' +
       '</div>',
+    publicQueryList: [],
+    userQueryList: [],
 
     init: function (settings) {
       var inputSelector = settings.inputSelector || '#searchbar';
