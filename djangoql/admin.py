@@ -141,7 +141,7 @@ class DjangoQLSearchMixin(object):
         queryset = Query.objects.filter(
             Q(model=self.get_current_content_type()) &
             (Q(user=request.user) | Q(public=True))
-        ).values('id', 'text')
+        ).values('id', 'text', 'public')
 
         response = {'results': list(queryset)}
         return self.json_response(response)

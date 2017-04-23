@@ -22,8 +22,13 @@
       resultsTemplate: '' +
         '<tr data-id="__id__" data-text="__text__">' +
           '<td class="djangoql-qm-insert">__text__</td>' +
-          '<td class="djangoql-qm-delete">' +
-            '<span title="Delete query">✘</span>' +
+          '<td class="djangoql-qm-query-control">' +
+            '<div class="djangoql-qm-delete noselect">' +
+              '<span title="Delete query">✘</span>' +
+            '</div>' +
+            '<div class="djangoql-qm-share noselect __public__">' +
+              '<span title="Public query">⚑</span>' +
+            '</div>' +
           '</td>' +
         '</tr>',
 
@@ -94,8 +99,14 @@
         });
 
         $(document).on('click', '.djangoql-qm-delete', function () {
-          var query_id = $(this).parent('tr').data('id');
+          var query_id = $(this).closest('tr').data('id');
           self.removeQuery(query_id);
+        });
+
+        $(document).on('click', '.djangoql-qm-share', function () {
+          var query_id = $(this).closest('tr').data('id');
+          var state = !$(this).hasClass('public');
+          self.togglePublicState(query_id, state);
         });
       },
 
@@ -140,6 +151,7 @@
             self.resultsTemplate
               .replace(/__id__/g, val.id)
               .replace(/__text__/g, val.text)
+              .replace(/__public__/g, val.public ? 'public' : '')
           );
           self.resultsContainer.append(elem);
         });
@@ -167,12 +179,27 @@
           );
       },
 
+      togglePublicState: function(query_id, state) {
+        this.updateQuery(query_id, { 'public': state });
+      },
+
+      updateQuery: function(query_id, data) {
+        var self = this;
+        data = data || {};
+        data.id = query_id;
+        data.csrfmiddlewaretoken = this.getCsrfMiddlewareToken();
+        $.post("update-query/", data).done(function() {
+            self.refreshQueryList();
+        });
+      },
+
       removeQuery: function(query_id) {
         var self = this;
-        $.post("remove-query/", {
+        var data = {
           id: query_id,
           csrfmiddlewaretoken: this.getCsrfMiddlewareToken()
-        }).done(function() {
+        };
+        $.post("remove-query/", data).done(function() {
             $('tr[data-id=' + query_id + ']', self.resultsContainer).fadeOut(
               200, function() {
                 self.refreshQueryList();

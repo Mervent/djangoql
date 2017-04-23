@@ -63,11 +63,30 @@
   cursor: pointer;
 }
 
-.djangoql-qm-delete span {
-  color: #a00000;
+.djangoql-qm-query-control span {
   font-weight: bold;
   cursor: pointer;
   font-size: 16px;
+}
+
+.djangoql-qm-delete {
+  color: #a00000;
+}
+
+.djangoql-qm-delete:hover {
+  color: #f00000;
+}
+
+.djangoql-qm-share {
+  margin-top: 10px;
+}
+
+.djangoql-qm-share:hover {
+  color: #79aec8;
+}
+
+.djangoql-qm-share.public {
+  color: #009000;
 }
 
 .noselect {
