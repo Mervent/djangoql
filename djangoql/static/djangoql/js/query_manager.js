@@ -21,7 +21,7 @@ var DjangoQM = (function() {
         '</div>' +
       '</div>',
     userQueryTemplate: '' +
-      '<div class="djangoql-qm-query" data-id="__id__" data-text="__text__">' +
+      '<div class="djangoql-qm-query" data-id="__id__">' +
         '<div class="djangoql-qm-text">__text__</div>' +
         '<div class="djangoql-qm-query-control">' +
             '<span class="djangoql-qm-share noselect __public__" title="Toggle public query">⚑</span>' +
@@ -29,7 +29,7 @@ var DjangoQM = (function() {
         '</div>' +
       '</div>',
     publicQueryTemplate: '' +
-      '<div class="djangoql-qm-query" data-id="__id__" data-text="__text__">' +
+      '<div class="djangoql-qm-query" data-id="__id__">' +
           '<div class="djangoql-qm-text">__text__</div>' +
           '<div class="djangoql-qm-public-tooltip">' +
             'Shared by other user' +
@@ -101,7 +101,7 @@ var DjangoQM = (function() {
       });
 
       $(document).on('click', '.djangoql-qm-text', function () {
-        var queryText = $(this).closest(querySelector).data('text');
+        var queryText = $(this).text();
         $(self.inputSelector).val(queryText);
         self.updateStarIconStatus();
         self.popupWindow.hide();
