@@ -7,6 +7,9 @@
   <link rel="stylesheet" type="text/css" href="{% static 'djangoql/css/completion.css' %}" />
   <script src="{% static 'djangoql/js/lib/lexer.js' %}"></script>
   <script src="{% static 'djangoql/js/completion.js' %}"></script>
+  <script src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+  <script src="{% static 'djangoql/js/query_manager.js' %}"></script>
+  <link href="{% static 'djangoql/css/query_manager.css' %}" type="text/css" rel="stylesheet">
 </head>
 <body>
 
@@ -15,6 +18,9 @@
     <textarea name="q" cols="40" rows="1" autofocus>{{ q }}</textarea>
   </form>
 
+  <p>
+	  Note: query manager demo requires admin <a href="{% url 'admin:login' %}">login</a> and permissions
+  </p>
   <ul>
   {% for item in search_results %}
     <li>{{ item }}</li>
@@ -43,6 +49,13 @@
         autoResize: true
       });
     });
+    DjangoQM.init({
+        inputSelector: 'textarea[name=q]',
+		baseUrl: '/admin/auth/user/', // requires login and permissions
+		getCsrfMiddlewareToken: function() {
+          return '{{ csrf_token }}';
+		}
+      });
   </script>
 </body>
 </html>
