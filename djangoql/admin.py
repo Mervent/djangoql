@@ -6,9 +6,11 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import FieldError, ValidationError
 from django.db.models import Q
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from django.views.generic import TemplateView
 
-from djangoql.models import Query
+from .models import Query
+from .forms import QueryUpdateForm
 from .compat import text_type
 from .exceptions import DjangoQLError
 from .queryset import apply_search
@@ -159,12 +161,10 @@ class DjangoQLSearchMixin(object):
 
     def update_query(self, request):
         query_id = request.POST.get('id')
-        public = request.POST.get('public')
-        if query_id and public:
-            Query.objects.filter(
-                id=query_id,
-                user=request.user
-            ).update(public=public)
+        query = get_object_or_404(Query, id=query_id)
+        form = QueryUpdateForm(request.POST, instance=query)
+        if form.is_valid():
+            form.save()
             return self.json_response({'success': True}, status=200)
 
         return self.json_response({'success': False}, status=400)

@@ -36,6 +36,12 @@ class DjangoQLAdminTest(TestCase):
         self.assertEquals(200, response.status_code)
         self.assertEqual(Query.objects.count(), 1)
 
+    def test_update_query_post_without_id_param_raises_404(self):
+        self.client.login(**self.credentials)
+        url = reverse('admin:core_book_djangoql_update_query')
+        resp = self.client.post(url)
+        self.assertEqual(resp.status_code, 404)
+
     def test_toggle_public_query(self):
         self.client.login(**self.credentials)
         url = reverse('admin:core_book_djangoql_update_query')
@@ -44,11 +50,11 @@ class DjangoQLAdminTest(TestCase):
         query = Query.objects.first()
         self.assertFalse(query.public)
 
-        self.client.post(url, data={'id': query.id, 'public': True})
+        self.client.post(url, data={'id': query.id, 'public': 'true'})
         query.refresh_from_db()
         self.assertTrue(query.public)
 
-        self.client.post(url, data={'id': query.id, 'public': False})
+        self.client.post(url, data={'id': query.id, 'public': 'false'})
         query.refresh_from_db()
         self.assertFalse(query.public)
 
