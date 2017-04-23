@@ -57,6 +57,7 @@ class DjangoQLSearchMixin(object):
         if self.djangoql_query_manager:
             media.add_js((
                 'djangoql/js/query_manager.js',
+                'djangoql/js/query_manager_admin.js',
             ))
             media.add_css({'': (
                 'djangoql/css/query_manager.css',
