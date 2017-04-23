@@ -74,7 +74,7 @@ class DjangoQLAdminTest(TestCase):
         response = self.client.get(url)
         self.assertEquals(200, response.status_code)
         response_json = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(len(response_json['results']), 2)
+        self.assertEqual(len(response_json['results']['user']), 2)
 
     def test_get_queries_should_include_public_ones(self):
         get_url = reverse('admin:core_book_djangoql_get_queries')
@@ -96,16 +96,19 @@ class DjangoQLAdminTest(TestCase):
         self.client.post(update_url, data={'id': query.id, 'public': True})
         response = self.client.get(get_url)
         response_json = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(len(response_json['results']), 2)
+        self.assertEqual(len(response_json['results']['user']), 2)
+        # We should not see own public query
+        self.assertEqual(len(response_json['results']['public']), 0)
 
         # Login as new user and check query list, we should see public query
         self.client.login(**new_credentials)
         response = self.client.get(get_url)
         response_json = json.loads(response.content.decode('utf-8'))
-        self.assertEqual(len(response_json['results']), 1)
+        self.assertEqual(len(response_json['results']['user']), 0)
+        self.assertEqual(len(response_json['results']['public']), 1)
         self.assertIn(
             public_query,
-            [x['text'] for x in response_json['results']]
+            [x['text'] for x in response_json['results']['public']]
         )
 
     def test_delete_query_by_id(self):

@@ -138,12 +138,23 @@ class DjangoQLSearchMixin(object):
         )
 
     def get_queries(self, request):
-        queryset = Query.objects.filter(
-            Q(model=self.get_current_content_type()) &
-            (Q(user=request.user) | Q(public=True))
+        user_queries = Query.objects.filter(
+            model=self.get_current_content_type(),
+            user=request.user
         ).values('id', 'text', 'public')
+        public_queries = Query.objects.filter(
+            model=self.get_current_content_type(),
+            public=True,
+        ).exclude(
+            user=request.user
+        ).values('id', 'text')
 
-        response = {'results': list(queryset)}
+        response = {
+            'results': {
+                'user': list(user_queries),
+                'public': list(public_queries)
+            }
+        }
         return self.json_response(response)
 
     def save_query(self, request):

@@ -14,23 +14,26 @@
             '<hr>' +
             'Saved Queries' +
             '<div id="djangoql-qm-results-wrapper">' +
-              '<table id="djangoql-qm-results">' +
-              '</table>' +
+              '<div id="djangoql-qm-results">' +
+              '</div>' +
             '</div>' +
           '</div>' +
         '</div>',
-      resultsTemplate: '' +
-        '<tr data-id="__id__" data-text="__text__">' +
-          '<td class="djangoql-qm-insert">__text__</td>' +
-          '<td class="djangoql-qm-query-control">' +
-            '<div class="djangoql-qm-delete noselect">' +
-              '<span title="Delete query">✘</span>' +
+      userQueryTemplate: '' +
+        '<div class="djangoql-qm-query" data-id="__id__" data-text="__text__">' +
+          '<div class="djangoql-qm-text">__text__</div>' +
+          '<div class="djangoql-qm-query-control">' +
+              '<span class="djangoql-qm-share noselect __public__" title="Toggle public query">⚑</span>' +
+              '<span class="djangoql-qm-delete noselect" title="Delete query"> ✘</span>' +
+          '</div>' +
+        '</div>',
+      publicQueryTemplate: '' +
+        '<div class="djangoql-qm-query" data-id="__id__" data-text="__text__">' +
+            '<div class="djangoql-qm-text">__text__</div>' +
+            '<div class="djangoql-qm-public-tooltip">' +
+              'Shared by other user' +
             '</div>' +
-            '<div class="djangoql-qm-share noselect __public__">' +
-              '<span title="Public query">⚑</span>' +
-            '</div>' +
-          '</td>' +
-        '</tr>',
+        '</div>',
 
       init: function(inputSelector) {
         $(inputSelector).after(this.toolboxTemplate);
@@ -53,6 +56,7 @@
         var self = this;
         var checkStarTimeout;
         var searchTimeout;
+        var querySelector = '.djangoql-qm-query';
 
         self.starButton.on('click', function() {
           if (self.currentQueryId) {
@@ -90,21 +94,20 @@
           }
         });
 
-        $(document).on('click', '.djangoql-qm-insert', function () {
-          $(self.inputSelector).val(
-            $(this).text()
-          );
+        $(document).on('click', '.djangoql-qm-text', function () {
+          var queryText = $(this).closest(querySelector).data('text');
+          $(self.inputSelector).val(queryText);
           self.updateStarIconStatus();
           self.popupWindow.hide();
         });
 
         $(document).on('click', '.djangoql-qm-delete', function () {
-          var query_id = $(this).closest('tr').data('id');
+          var query_id = $(this).closest(querySelector).data('id');
           self.removeQuery(query_id);
         });
 
         $(document).on('click', '.djangoql-qm-share', function () {
-          var query_id = $(this).closest('tr').data('id');
+          var query_id = $(this).closest(querySelector).data('id');
           var state = !$(this).hasClass('public');
           self.togglePublicState(query_id, state);
         });
@@ -115,16 +118,22 @@
       },
 
       cacheResults: function(results) {
-        this.userQueryList = results;
+        this.publicQueryList = results.public;
+        this.userQueryList = results.user;
       },
 
       filterQueryList : function(contains) {
-        return this.userQueryList.filter(function(obj) {
-          return (obj.text.indexOf(contains) !== -1);
-        });
+        return {
+          'user': this.userQueryList.filter(function (obj) {
+            return (obj.text.indexOf(contains) !== -1);
+          }),
+          'public': this.publicQueryList.filter(function (obj) {
+            return (obj.text.indexOf(contains) !== -1);
+          })
+        };
       },
 
-      getQuery : function(queryText) {
+      getUserQuery : function(queryText) {
         return this.userQueryList.filter(function(obj) {
           return obj.text === queryText;
         })[0];
@@ -132,7 +141,7 @@
 
       updateStarIconStatus: function() {
         var currentQueryText = $(this.inputSelector).val();
-        var userQuery = this.getQuery(currentQueryText);
+        var userQuery = this.getUserQuery(currentQueryText);
 
         if (userQuery) {
           this.starButton.addClass('starred');
@@ -146,15 +155,22 @@
       renderResults: function(results) {
         var self = this;
         self.resultsContainer.empty();
-        $.each(results, function(key, val){
-          var elem = $(
-            self.resultsTemplate
-              .replace(/__id__/g, val.id)
-              .replace(/__text__/g, val.text)
-              .replace(/__public__/g, val.public ? 'public' : '')
-          );
+        $.each(results.user, function(key, val){
+          var elem = $(self.renderQuery(self.userQueryTemplate, val));
           self.resultsContainer.append(elem);
         });
+
+        $.each(results.public, function(key, val){
+          var elem = $(self.renderQuery(self.publicQueryTemplate, val));
+          self.resultsContainer.append(elem);
+        });
+      },
+
+      renderQuery: function(template, query) {
+        return template
+          .replace(/__id__/g, query.id)
+          .replace(/__text__/g, query.text)
+          .replace(/__public__/g, query.public ? 'public' : '');
       },
 
       saveQuery: function (query) {
@@ -200,7 +216,7 @@
           csrfmiddlewaretoken: this.getCsrfMiddlewareToken()
         };
         $.post("remove-query/", data).done(function() {
-            $('tr[data-id=' + query_id + ']', self.resultsContainer).fadeOut(
+            $('.djangoql-qm-query[data-id=' + query_id + ']', self.resultsContainer).fadeOut(
               200, function() {
                 self.refreshQueryList();
               }
